@@ -1,0 +1,60 @@
+# ============================================================
+#  Blues Juniors – .htaccess
+#  1) 301-uudelleenohjaukset vanhoilta (backlinkatuilta) osoitteilta
+#     etusivulle -> link juice siirtyy pääsivulle
+#  2) Kanonisointi: pakota HTTPS + www
+#  Apache + mod_rewrite vaaditaan.
+# ============================================================
+
+Options -Indexes +FollowSymLinks
+DirectoryIndex index.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # ----------------------------------------------------------
+  #  OSA 1: Vanhojen CMS-osoitteiden 301 -> etusivu
+  #  (kohdeosoite on absoluuttinen https+www, joten ohjaus
+  #   tapahtuu yhdellä hypyllä myös http/non-www -pyynnöille)
+  #  Loppu-'?' pudottaa mahdollisen query-stringin pois.
+  # ----------------------------------------------------------
+
+  # Vanha index.php + query string (esim. viewatopic-linkit)
+  RewriteCond %{QUERY_STRING} .
+  RewriteRule ^index\.php$ https://www.bluesjuniors.fi/? [R=301,L]
+
+  # Uutiset / uutisarkisto  (esim. /uutiset/30161/..., /uutiset/11468/...)
+  RewriteRule ^uutiset(/.*)?$        https://www.bluesjuniors.fi/? [R=301,L]
+  RewriteRule ^uutisarkisto(/.*)?$   https://www.bluesjuniors.fi/? [R=301,L]
+
+  # Joukkueet  (esim. /joukkueet ja /joukkueet/674)
+  RewriteRule ^joukkueet(/.*)?$      https://www.bluesjuniors.fi/? [R=301,L]
+  RewriteRule ^joukkueyhteydet(/.*)?$ https://www.bluesjuniors.fi/? [R=301,L]
+
+  # Yhteystiedot-osion vanhat alasivut (esim. /yhteystiedot/6105/opastus-...)
+  # HUOM: uusi yhteystiedot.html EI täsmää tähän (vaatii kauttaviivan).
+  RewriteRule ^yhteystiedot/.+$      https://www.bluesjuniors.fi/? [R=301,L]
+
+  # Kuvapankki  (esim. /imagebank/96324_huge.jpg)
+  RewriteRule ^imagebank(/.*)?$      https://www.bluesjuniors.fi/? [R=301,L]
+
+  # Muut vanhat osiot (puolustava kattava lista)
+  RewriteRule ^(seura|organisaatio|materiaalipankki|linkit|vieraskirja|kalenteri|ottelut|kategoria|ilmoittaudu|liity-seuraan|osta-ja-myy|vuorovaraukset)(/.*)?$ https://www.bluesjuniors.fi/? [R=301,L]
+
+  # ----------------------------------------------------------
+  #  OSA 2: Kanonisointi kaikille muille (nykyisille) sivuille
+  #  - pakota HTTPS
+  #  - pakota www-alkuinen osoite
+  # ----------------------------------------------------------
+  RewriteCond %{HTTPS} off [OR]
+  RewriteCond %{HTTP_HOST} !^www\. [NC]
+  RewriteRule ^ https://www.bluesjuniors.fi%{REQUEST_URI} [R=301,L]
+</IfModule>
+
+# ============================================================
+#  Vanha kova 404 -> mieluummin ohjaa tuntemattomat vanhat
+#  polut etusivulle (valinnainen; poista kommentti käyttöön).
+#  Varo: tämä ohjaa MYÖS oikeat 404:t etusivulle.
+# ============================================================
+# ErrorDocument 404 https://www.bluesjuniors.fi/
